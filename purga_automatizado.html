@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Purga Widget</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #050d1a;
+      --bg-panel: #0a1628;
+      --bg-panel2: #0d1e35;
+      --azul-brillante: #1e90ff;
+      --azul-medio: #1565c0;
+      --azul-borde: #1a4a8a;
+      --acento: #ff6d00;
+      --acento-suave: #ff8f00;
+      --texto-principal: #e8f4ff;
+      --texto-secundario: #7aaddd;
+      --rojo-peligro: #e53935;
+      --verde-salvo: #00e676;
+      --font-titulo: 'Bebas Neue', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-body: 'Rajdhani', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── El body ocupa EXACTAMENTE el viewport del Browser Source ── */
+    html,
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      font-family: var(--font-body);
+      color: var(--texto-principal);
+    }
+
+    /* ══ PANTALLA INICIO — ocupa todo el viewport ══ */
+    #inicio {
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg-main);
+      border: 2px solid var(--azul-borde);
+      border-radius: clamp(6px, 1.5vh, 14px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1vh;
+    }
+
+    #inicio h1 {
+      font-family: var(--font-titulo);
+      font-size: clamp(28px, 8vh, 56px);
+      letter-spacing: 6px;
+    }
+
+    #inicio p {
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 1.6vh, 13px);
+      color: var(--texto-secundario);
+      letter-spacing: 2px;
+
+    }
+
+    #inicio button {
+      margin-top: 1vh;
+      padding: clamp(6px, 1.2vh, 14px) clamp(16px, 3vw, 36px);
+      border-radius: 8px;
+      border: 2px solid var(--acento);
+      background: rgba(255, 109, 0, 0.1);
+      color: var(--acento);
+      font-family: var(--font-titulo);
+      font-size: clamp(14px, 4vh, 26px);
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #inicio button:hover {
+      background: var(--acento);
+      color: #000;
+    }
+
+    #estado-conexion {
+      margin-top: 2vh;
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 1.4vh, 12px);
+      color: var(--texto-secundario);
+      letter-spacing: 1px;
+    }
+
+    #dot-conexion {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--acento);
+      margin-right: 6px;
+      animation: parpadeo 1s infinite alternate;
+    }
+
+    #dot-conexion.conectado {
+      background: var(--verde-salvo);
+      animation: none;
+    }
+
+    #dot-conexion.error {
+      background: var(--rojo-peligro);
+      animation: none;
+    }
+
+    /* ══ WIDGET PRINCIPAL — 100% del viewport, flex column ══ */
+    #widget {
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg-main);
+      border: 2px solid var(--azul-borde);
+      border-radius: clamp(6px, 1.5vh, 14px);
+      overflow: hidden;
+      display: none;
+      /* se cambia a flex en JS */
+      flex-direction: column;
+    }
+
+    #widget::before {
+      content: '';
+      display: block;
+      height: clamp(2px, 0.6vh, 4px);
+      flex-shrink: 0;
+      background: linear-gradient(90deg, transparent, var(--azul-brillante), var(--acento), transparent);
+    }
+
+    /* Header — ~13% del alto */
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(4px, 1vh, 10px) clamp(10px, 2vw, 18px);
+      border-bottom: 1px solid var(--azul-borde);
+      background: var(--bg-panel);
+      flex-shrink: 0;
+      height: 13vh;
+    }
+
+    #titulo-wrap {
+      display: flex;
+      align-items: center;
+      gap: clamp(6px, 1vw, 12px);
+    }
+
+    #logo-box {
+      width: clamp(36px, 7vh, 60px);
+      height: clamp(36px, 7vh, 60px);
+      border-radius: clamp(4px, 1vh, 8px);
+      border: 1.5px solid var(--azul-borde);
+      overflow: hidden;
+      background: var(--bg-panel2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #logo-placeholder {
+      font-family: var(--font-titulo);
+      font-size: clamp(14px, 3.5vh, 24px);
+      color: var(--azul-brillante);
+    }
+
+    #titulo-texto {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+
+    #subtitulo {
+      font-family: var(--font-mono);
+      font-size: clamp(7px, 1.2vh, 11px);
+      color: var(--acento);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #titulo-principal {
+      font-family: var(--font-titulo);
+      font-size: clamp(18px, 5.5vh, 40px);
+      letter-spacing: 3px;
+      line-height: 1;
+    }
+
+    /* Timer */
+    #timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+    }
+
+    #timer-label {
+      font-family: var(--font-mono);
+      font-size: clamp(7px, 1.2vh, 10px);
+      color: var(--texto-secundario);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #timer-display {
+      font-family: var(--font-titulo);
+      font-size: clamp(22px, 7vh, 52px);
+      color: var(--azul-brillante);
+      line-height: 1;
+      letter-spacing: 1px;
+      transition: color 0.5s;
+    }
+
+    #timer-display.urgente {
+      color: var(--acento);
+    }
+
+    #timer-display.critico {
+      color: var(--rojo-peligro);
+      animation: parpadeo 0.5s infinite alternate;
+    }
+
+    /* Barra */
+    #barra-wrap {
+      height: clamp(2px, 0.6vh, 4px);
+      background: rgba(30, 144, 255, 0.15);
+      flex-shrink: 0;
+    }
+
+    #barra-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--azul-brillante), var(--acento));
+      transition: width 1s linear, background 1s;
+    }
+
+    /* Banner turno — ~8% del alto */
+    #turno-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(6px, 1vw, 12px);
+      padding: clamp(2px, 0.8vh, 8px) clamp(10px, 2vw, 18px);
+      background: rgba(30, 144, 255, 0.08);
+      border-bottom: 1px solid rgba(30, 144, 255, 0.2);
+      flex-shrink: 0;
+      height: 8vh;
+    }
+
+    #turno-label {
+      font-family: var(--font-mono);
+      font-size: clamp(14px, 4vh, 28px);
+      color: var(--texto-secundario);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #turno-nombre {
+      font-family: var(--font-titulo);
+      font-size: clamp(14px, 4vh, 28px);
+      letter-spacing: 2px;
+      color: var(--azul-brillante);
+      animation: pulso-nombre 1s infinite alternate;
+    }
+
+    @keyframes pulso-nombre {
+      from {
+        opacity: 1
+      }
+
+      to {
+        opacity: 0.6
+      }
+    }
+
+    /* Comando — ~7% del alto */
+    #comando-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(4px, 1vw, 10px);
+      padding: clamp(2px, 0.8vh, 6px) clamp(10px, 2vw, 18px);
+      background: rgba(255, 109, 0, 0.08);
+      border-bottom: 1px solid rgba(255, 109, 0, 0.2);
+      flex-shrink: 0;
+      height: 8vh;
+    }
+
+    #comando-info span {
+      font-family: var(--font-mono);
+      font-size: clamp(14px, 1.8vh, 18px);
+      color: var(--texto-secundario);
+      letter-spacing: 1px;
+    }
+
+    #comando-tag {
+      font-family: var(--font-mono);
+      font-size: clamp(14px, 1.8vh, 18px);
+      font-weight: bold;
+      color: var(--acento);
+      background: rgba(255, 109, 0, 0.12);
+      padding: clamp(1px, 0.3vh, 3px) clamp(5px, 1vw, 10px);
+      border-radius: 3px;
+      border: 1px solid rgba(255, 109, 0, 0.3);
+    }
+
+    /* Lista header — ~6% del alto */
+    #lista-header {
+      display: grid;
+      grid-template-columns: 5% 1fr auto auto;
+      gap: clamp(4px, 1vw, 8px);
+      padding: clamp(2px, 0.8vh, 6px) clamp(10px, 2vw, 18px);
+      border-bottom: 1px solid var(--azul-borde);
+      background: var(--bg-panel);
+      flex-shrink: 0;
+      height: 6vh;
+      align-items: center;
+    }
+
+    #lista-header span {
+      font-family: var(--font-mono);
+      font-size: clamp(7px, 1.1vh, 10px);
+      color: var(--texto-secundario);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Lista — ocupa TODO el espacio restante */
+    #lista {
+      flex: 1;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      min-height: 0;
+    }
+
+    #lista::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #lista::-webkit-scrollbar-track {
+      background: var(--bg-panel2);
+    }
+
+    #lista::-webkit-scrollbar-thumb {
+      background: var(--azul-borde);
+      border-radius: 4px;
+    }
+
+    #lista::-webkit-scrollbar-thumb:hover {
+      background: var(--azul-brillante);
+    }
+
+    /* Filas — padding relativo al alto */
+    .participante {
+      display: grid;
+      grid-template-columns: 5% 1fr auto auto;
+      gap: clamp(4px, 1vw, 8px);
+      align-items: center;
+      padding: clamp(4px, 1vh, 8px) clamp(10px, 2vw, 18px);
+      border-bottom: 1px solid rgba(26, 74, 138, 0.3);
+      transition: background 0.3s;
+    }
+
+    .participante:last-child {
+      border-bottom: none;
+    }
+
+    .participante.turno-activo {
+      background: rgba(30, 144, 255, 0.1);
+      border-left: 3px solid var(--azul-brillante);
+    }
+
+    .participante.salvado {
+      background: rgba(0, 230, 118, 0.05);
+    }
+
+    .participante.eliminado {
+      background: rgba(229, 57, 53, 0.05);
+      opacity: 0.6;
+    }
+
+    .num {
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 1.4vh, 12px);
+      color: var(--texto-secundario);
+      text-align: center;
+    }
+
+    .nombre {
+      font-family: var(--font-body);
+      font-size: clamp(11px, 2vh, 17px);
+      font-weight: 600;
+      color: var(--texto-principal);
+      letter-spacing: 0.5px;
+    }
+
+    .nombre.salvado-text {
+      color: var(--verde-salvo);
+    }
+
+    .nombre.eliminado-text {
+      color: var(--rojo-peligro);
+      text-decoration: line-through;
+    }
+
+    .rol-badge {
+      font-family: var(--font-mono);
+      font-size: clamp(8px, 1.2vh, 10px);
+      padding: clamp(1px, 0.3vh, 3px) clamp(4px, 0.8vw, 8px);
+      border-radius: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .rol-badge.vip {
+      color: var(--acento-suave);
+      background: rgba(255, 143, 0, 0.12);
+      border: 1px solid rgba(255, 143, 0, 0.3);
+    }
+
+    .rol-badge.mod {
+      color: #7e57ff;
+      background: rgba(126, 87, 255, 0.12);
+      border: 1px solid rgba(126, 87, 255, 0.3);
+    }
+
+    .estado-icono {
+      font-size: clamp(14px, 3vh, 24px);
+      text-align: center;
+      transition: all 0.4s;
+    }
+
+    .estado-icono.en-espera {
+      opacity: 0.3;
+    }
+
+    .estado-icono.en-turno {
+      animation: pulso-riesgo 1s infinite;
+    }
+
+    .estado-icono.salvado-icono {
+      animation: pop 0.4s ease forwards;
+    }
+
+    .estado-icono.eliminado-icono {
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+
+    @keyframes pulso-riesgo {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+
+      50% {
+        transform: scale(1.2);
+        opacity: 0.6
+      }
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(0.5)
+      }
+
+      70% {
+        transform: scale(1.3)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    @keyframes parpadeo {
+      from {
+        opacity: 1
+      }
+
+      to {
+        opacity: 0.4
+      }
+    }
+
+    /* Controles — ~10% del alto */
+    #controles {
+      display: flex;
+      gap: clamp(6px, 1vw, 10px);
+      padding: clamp(4px, 1vh, 8px) clamp(10px, 2vw, 18px);
+      background: #020810;
+      border-top: 1px solid var(--azul-borde);
+      flex-shrink: 0;
+      height: 10vh;
+      align-items: center;
+    }
+
+    #controles button {
+      flex: 1;
+      padding: clamp(3px, 0.6vh, 6px) clamp(6px, 1vw, 12px);
+      border-radius: 5px;
+      border: 1.5px solid var(--azul-borde);
+      background: var(--bg-panel2);
+      color: var(--texto-principal);
+      font-family: var(--font-mono);
+      font-size: clamp(8px, 1.3vh, 11px);
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      line-height: 1.2;
+    }
+
+    #controles button .btn-canje {
+      font-size: clamp(7px, 1vh, 9px);
+      color: var(--texto-secundario);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      opacity: 0.8;
+    }
+
+    #controles button:hover { background: var(--azul-medio); border-color: var(--azul-brillante); }
+    #controles button.danger { border-color: var(--rojo-peligro); }
+    #controles button.danger:hover { background: var(--rojo-peligro); }
+    #controles button.success { border-color: var(--verde-salvo); }
+    #controles button.success:hover { background: #00704a; border-color: var(--verde-salvo); }
+
+    /* ══ PANTALLA FINAL — también 100% viewport ══ */
+    #pantalla-final {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg-main);
+      border: 2px solid var(--azul-borde);
+      border-radius: clamp(6px, 1.5vh, 14px);
+      overflow: hidden;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #pantalla-final::before {
+      content: '';
+      display: block;
+      height: clamp(2px, 0.6vh, 4px);
+      flex-shrink: 0;
+    }
+
+    #pantalla-final.calavera::before {
+      background: linear-gradient(90deg, transparent, var(--rojo-peligro), transparent);
+    }
+
+    #pantalla-final.angel::before {
+      background: linear-gradient(90deg, transparent, var(--verde-salvo), transparent);
+    }
+
+    #final-imagen-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #final-emoji {
+      font-size: clamp(60px, 22vh, 180px);
+      line-height: 1;
+    }
+
+    #final-titulo {
+      font-family: var(--font-titulo);
+      font-size: clamp(22px, 6vh, 50px);
+      letter-spacing: 4px;
+      padding: 0 clamp(12px, 2vw, 24px) clamp(4px, 1vh, 10px);
+    }
+
+    #pantalla-final.calavera #final-titulo {
+      color: var(--rojo-peligro);
+    }
+
+    #pantalla-final.angel #final-titulo {
+      color: var(--verde-salvo);
+    }
+
+    #final-resultado {
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 1.6vh, 14px);
+      color: var(--texto-secundario);
+      letter-spacing: 1px;
+      padding-bottom: clamp(4px, 1vh, 10px);
+    }
+
+    /* Lista de nombres en pantalla final */
+    #final-lista {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: clamp(4px, 0.8vh, 8px) clamp(6px, 1vw, 12px);
+      padding: clamp(4px, 1vh, 10px) clamp(12px, 2vw, 24px);
+      max-height: 25vh;
+      overflow-y: auto;
+    }
+    #final-lista::-webkit-scrollbar { width: 3px; }
+    #final-lista::-webkit-scrollbar-track { background: transparent; }
+    #final-lista::-webkit-scrollbar-thumb { background: var(--azul-borde); border-radius: 4px; }
+
+    .final-nombre-chip {
+      font-family: var(--font-body);
+      font-size: clamp(10px, 1.8vh, 15px);
+      font-weight: 600;
+      padding: clamp(2px, 0.4vh, 4px) clamp(8px, 1.2vw, 14px);
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .final-nombre-chip.salvado-chip {
+      color: var(--verde-salvo);
+      background: rgba(0,230,118,0.1);
+      border: 1px solid rgba(0,230,118,0.3);
+    }
+    .final-nombre-chip.eliminado-chip {
+      color: var(--rojo-peligro);
+      background: rgba(229,57,53,0.1);
+      border: 1px solid rgba(229,57,53,0.3);
+    }
+
+    #final-controles {
+      display: flex;
+      gap: 10px;
+      padding: clamp(8px, 2vh, 16px) clamp(12px, 2vw, 24px);
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #final-controles button {
+      padding: clamp(6px, 1.2vh, 12px) clamp(16px, 3vw, 30px);
+      border-radius: 8px;
+      border: 1.5px solid var(--azul-borde);
+      background: var(--bg-panel2);
+      color: var(--texto-principal);
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 1.4vh, 13px);
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    #final-controles button:hover {
+      background: var(--azul-medio);
+      border-color: var(--azul-brillante);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════
+     PANTALLA INICIO
+════════════════════════ -->
+  <div id="inicio">
+    <h1>LA PURGA</h1>
+    <p>Widget configurado por Victor Aleman · listo para iniciar</p>
+    <button onclick="iniciarPurga()">⚡ INICIAR PURGA</button>
+    <div id="estado-conexion">
+      <span id="dot-conexion"></span>
+      <span id="texto-conexion">Conectando a Twitch IRC…</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+     WIDGET PRINCIPAL
+════════════════════════ -->
+  <div id="widget">
+
+    <div id="header">
+      <div id="titulo-wrap">
+        <div id="logo-box">
+          <!--
+          LOGO — elige una opción:
+          A) URL:    <img src="https://mi-logo.png" alt="Logo">
+          B) Local:  <img src="logo.png" alt="Logo">  (misma carpeta)
+          C) Dejar el ⚡ por defecto
+        -->
+          <img src="logo.png" alt="Logo"> <!--
+        <span id="logo-placeholder">⚡</span>-->
+        </div>
+        <div id="titulo-texto">
+          <span id="subtitulo">EVENTO ESPECIAL</span>
+          <span id="titulo-principal">LA PURGA</span>
+        </div>
+      </div>
+      <div id="timer-wrap">
+        <span id="timer-label">TIEMPO</span>
+        <span id="timer-display">00:20</span>
+      </div>
+    </div>
+
+    <div id="barra-wrap">
+      <div id="barra-fill"></div>
+    </div>
+
+    <!-- Banner: quién es el turno -->
+    <div id="turno-banner">
+      <span id="turno-label">EN TURNO:</span>
+      <span id="turno-nombre">—</span>
+    </div>
+
+    <!-- Comando -->
+    <div id="comando-info">
+      <span>Escribe</span>
+      <span id="comando-tag">!purga</span>
+      <span>para salvarte</span>
+    </div>
+
+    <!-- Tabla -->
+    <div id="lista-header">
+      <span>NUM</span>
+      <span>USUARIO</span>
+      <span>ROL</span>
+      <span>ESTADO</span>
+    </div>
+    <div id="lista"></div>
+
+    <!-- Controles -->
+    <div id="controles">
+      <button onclick="resetPurga()">↺ REINICIAR</button>
+      <button class="success" onclick="salvarTodos()">
+        🛡️ SALVACIÓN CUY
+        <span class="btn-canje">Canje por 3k Bits</span>
+      </button>
+      <button class="danger" onclick="eliminarTodos()">
+        ☠️ NUEVO ORDEN
+        <span class="btn-canje">Canje por 10k Bits</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════
+     PANTALLA FINAL
+════════════════════════ -->
+  <div id="pantalla-final">
+    <div id="final-imagen-wrap">
+      <!--
+      IMAGEN FINAL — para usar tu dibujo propio:
+      Reemplaza el emoji por:
+      <img id="final-imagen-calavera" src="calavera.png" style="width:200px;height:200px;object-fit:contain;display:none">
+      <img id="final-imagen-angel"    src="angel.png"    style="width:200px;height:200px;object-fit:contain;display:none">
+      Y en JS cambia mostrarPantallaFinal() para mostrar/ocultar la imagen correcta
+    -->
+      <span id="final-emoji">☠️</span>
+    </div>
+    <div id="final-titulo">LA PURGA</div>
+    <div id="final-resultado"></div>
+    <div id="final-lista"></div>
+    <div id="final-controles">
+      <button onclick="resetPurga()">↺ NUEVA PURGA</button>
+    </div>
+  </div>
+
+
+  <script>
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║           ZONA DE CONFIGURACIÓN — EDITA ESTO               ║
+       ╚══════════════════════════════════════════════════════════════╝
+
+       ── CÓMO OBTENER TU TOKEN Y CLIENT ID ──────────────────────────
+       1. Ve a https://dev.twitch.tv/console y haz clic en "Register Your Application"
+       2. Nombre: cualquiera (ej: "purga-widget"), OAuth Redirect: http://localhost
+          Categoría: "Other". Guarda y copia tu CLIENT ID.
+       3. Para el token abre esta URL en el navegador (reemplaza TU_CLIENT_ID):
+          https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=TU_CLIENT_ID&redirect_uri=http://localhost&scope=moderator:read:vips+moderation:read
+       4. Autoriza y copia el access_token que aparece en la URL de redirección.
+       ───────────────────────────────────────────────────────────────*/
+    const CONFIG = {
+      canal:      "elizabethidalgodg",    // nombre del canal Twitch en minúsculas
+      duracion:   30,            // segundos por turno
+      comando:    "!purga",      // comando para salvarse
+
+      // ── Credenciales Twitch API ──
+      client_id:  "64wotnyp1nkxvl6xiwpdvjp8sz5l3t",   // de dev.twitch.tv/console
+      token:      "otfin3j2zxf0bedn8i2ij28uav8o5y",        // access_token del paso 3
+
+      logoUrl:    "",            // URL o ruta del logo (vacío = ⚡)
+      subtitulo:  "EVENTO ESPECIAL",
+
+      imgCalavera: "",           // ej: "calavera.png" o URL
+      imgAngel:    "",           // ej: "angel.png" o URL
+    };
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║              FIN ZONA DE CONFIGURACIÓN                      ║
+       ╚══════════════════════════════════════════════════════════════╝ */
+
+    let turnoActual = -1;
+    let ordenTurnos = [];
+    let timerInterval = null;
+    let segundosRestantes = CONFIG.duracion;
+    let ws = null;
+    let turnoEnCurso = false;
+    let estadoParticipantes = {};
+
+    /* Aplicar config al DOM */
+    document.getElementById("comando-tag").textContent = CONFIG.comando;
+    document.getElementById("subtitulo").textContent   = CONFIG.subtitulo;
+
+    /* ── Obtener ID del canal desde su nombre ── */
+    async function obtenerCanalId() {
+      const res = await fetch(`https://api.twitch.tv/helix/users?login=${CONFIG.canal}`, {
+        headers: {
+          "Client-ID": CONFIG.client_id,
+          "Authorization": `Bearer ${CONFIG.token}`
+        }
+      });
+      const data = await res.json();
+      if (!data.data || data.data.length === 0) throw new Error("Canal no encontrado");
+      return data.data[0].id;
+    }
+
+    /* ── Obtener lista paginada (VIPs o Mods) ── */
+    async function obtenerLista(endpoint, canalId) {
+      let lista = [];
+      let cursor = null;
+      do {
+        const url = `https://api.twitch.tv/helix/${endpoint}?broadcaster_id=${canalId}&first=100`
+          + (cursor ? `&after=${cursor}` : "");
+        const res = await fetch(url, {
+          headers: {
+            "Client-ID": CONFIG.client_id,
+            "Authorization": `Bearer ${CONFIG.token}`
+          }
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(`${endpoint}: ${data.message}`);
+        lista = lista.concat(data.data || []);
+        cursor = data.pagination?.cursor || null;
+      } while (cursor);
+      return lista;
+    }
+
+    /* ── Cargar VIPs y Mods desde la API ── */
+    async function cargarParticipantes() {
+      const dotEl   = document.getElementById("dot-conexion");
+      const textoEl = document.getElementById("texto-conexion");
+      dotEl.className = "";
+      textoEl.textContent = "Cargando VIPs y Mods…";
+
+      try {
+        const canalId = await obtenerCanalId();
+
+        const [vips, mods] = await Promise.all([
+          obtenerLista("channels/vips", canalId),
+          obtenerLista("moderation/moderators", canalId)
+        ]);
+
+        // Construir lista unificada sin duplicados
+        // Los mods aparecen con user_login, los vips también
+        const vistos = new Set();
+        CONFIG.participantes = [];
+
+        mods.forEach(m => {
+          const login = m.user_login.toLowerCase();
+          if (!vistos.has(login)) {
+            vistos.add(login);
+            CONFIG.participantes.push({ nombre: login, rol: "mod" });
+          }
+        });
+
+        vips.forEach(v => {
+          const login = v.user_login.toLowerCase();
+          if (!vistos.has(login)) {
+            vistos.add(login);
+            CONFIG.participantes.push({ nombre: login, rol: "vip" });
+          }
+        });
+
+        textoEl.textContent = `${CONFIG.participantes.length} participantes cargados ✓`;
+        dotEl.className = "conectado";
+        return true;
+
+      } catch (err) {
+        dotEl.className = "error";
+        textoEl.textContent = "Error: " + err.message;
+        console.error(err);
+        return false;
+      }
+    }
+
+    /* ── Iniciar purga ── */
+    async function iniciarPurga() {
+      const btn = document.querySelector("#inicio button");
+      btn.disabled = true;
+      btn.textContent = "Cargando…";
+
+      const ok = await cargarParticipantes();
+      if (!ok || CONFIG.participantes.length === 0) {
+        btn.disabled = false;
+        btn.textContent = "⚡ INICIAR PURGA";
+        return;
+      }
+
+      document.getElementById("inicio").style.display        = "none";
+      document.getElementById("widget").style.display        = "flex";
+      document.getElementById("pantalla-final").style.display = "none";
+
+      ordenTurnos = CONFIG.participantes
+        .map((_, i) => i)
+        .sort(() => Math.random() - 0.5);
+
+      estadoParticipantes = {};
+      CONFIG.participantes.forEach(p => {
+        estadoParticipantes[p.nombre.toLowerCase()] = "espera";
+      });
+
+      construirLista();
+      conectarTwitch();
+      turnoActual = -1;
+      siguienteTurno();
+    }
+
+    /* ── Construir lista ── */
+    function construirLista() {
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
+      CONFIG.participantes.forEach((p, i) => {
+        const div = document.createElement("div");
+        div.className = "participante";
+        div.id = `p-${i}`;
+        div.innerHTML = `
+      <span class="num">${i + 1}</span>
+      <span class="nombre">${p.nombre}</span>
+      <span class="rol-badge ${p.rol}">${p.rol === "vip" ? "VIP" : "MOD"}</span>
+      <span class="estado-icono en-espera" title="En espera">☠️</span>
+    `;
+        lista.appendChild(div);
+      });
+    }
+
+    /* ── Siguiente turno ── */
+    function siguienteTurno() {
+      turnoActual++;
+
+      /* Limpiar highlight anterior */
+      document.querySelectorAll(".participante").forEach(el => {
+        el.classList.remove("turno-activo");
+      });
+
+      if (turnoActual >= ordenTurnos.length) {
+        /* Terminaron todos los turnos */
+        finalizarPurga();
+        return;
+      }
+
+      const idxReal = ordenTurnos[turnoActual];
+      const participante = CONFIG.participantes[idxReal];
+      const elRow = document.getElementById(`p-${idxReal}`);
+
+      /* Resaltar fila activa y hacer scroll hacia ella */
+      elRow.classList.add("turno-activo");
+      elRow.scrollIntoView({ behavior: "smooth", block: "center" });
+      const icono = elRow.querySelector(".estado-icono");
+      icono.classList.remove("en-espera");
+      icono.classList.add("en-turno");
+
+      /* Banner */
+      document.getElementById("turno-nombre").textContent = participante.nombre;
+
+      /* Timer */
+      segundosRestantes = CONFIG.duracion;
+      turnoEnCurso = true;
+      actualizarTimerDOM();
+      actualizarBarra();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        segundosRestantes--;
+        actualizarTimerDOM();
+        actualizarBarra();
+        if (segundosRestantes <= 0) {
+          clearInterval(timerInterval);
+          /* No se salvó — marcar eliminado */
+          marcarEliminado(idxReal);
+        }
+      }, 1000);
+    }
+
+    /* ── Timer DOM ── */
+    function actualizarTimerDOM() {
+      const m = Math.floor(segundosRestantes / 60);
+      const s = segundosRestantes % 60;
+      const display = document.getElementById("timer-display");
+      display.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      display.className = "";
+      const pct = segundosRestantes / CONFIG.duracion;
+      if (pct <= 0.15) display.classList.add("critico");
+      else if (pct <= 0.35) display.classList.add("urgente");
+    }
+
+    function actualizarBarra() {
+      const barra = document.getElementById("barra-fill");
+      const pct = (segundosRestantes / CONFIG.duracion) * 100;
+      barra.style.width = pct + "%";
+      if (pct <= 15) barra.style.background = "var(--rojo-peligro)";
+      else if (pct <= 35) barra.style.background = "linear-gradient(90deg, var(--acento), var(--rojo-peligro))";
+      else barra.style.background = "linear-gradient(90deg, var(--azul-brillante), var(--acento))";
+    }
+
+    /* ── Marcar salvado ── */
+    function marcarSalvado(idxReal) {
+      if (!turnoEnCurso) return;
+      turnoEnCurso = false;
+      clearInterval(timerInterval);
+
+      const p = CONFIG.participantes[idxReal];
+      estadoParticipantes[p.nombre.toLowerCase()] = "salvado";
+
+      const el = document.getElementById(`p-${idxReal}`);
+      el.classList.remove("turno-activo");
+      el.classList.add("salvado");
+      el.querySelector(".nombre").classList.add("salvado-text");
+      const icono = el.querySelector(".estado-icono");
+      icono.className = "estado-icono salvado-icono";
+      icono.textContent = "🛡️";
+      icono.title = "¡Salvado!";
+
+      /* Pausa breve antes del siguiente turno */
+      setTimeout(siguienteTurno, 1200);
+    }
+
+    /* ── Marcar eliminado ── */
+    function marcarEliminado(idxReal) {
+      turnoEnCurso = false;
+      const p = CONFIG.participantes[idxReal];
+      estadoParticipantes[p.nombre.toLowerCase()] = "eliminado";
+
+      const el = document.getElementById(`p-${idxReal}`);
+      el.classList.remove("turno-activo");
+      el.classList.add("eliminado");
+      el.querySelector(".nombre").classList.add("eliminado-text");
+      const icono = el.querySelector(".estado-icono");
+      icono.className = "estado-icono eliminado-icono";
+      icono.textContent = "☠️";
+      icono.title = "Eliminado";
+
+      setTimeout(siguienteTurno, 1200);
+    }
+
+    /* ── Chat Twitch IRC ── */
+    function conectarTwitch() {
+      const dotEl = document.getElementById("dot-conexion");
+      const textoEl = document.getElementById("texto-conexion");
+      try {
+        ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+        ws.onopen = () => {
+          ws.send("CAP REQ :twitch.tv/tags twitch.tv/commands");
+          ws.send("NICK justinfan" + Math.floor(Math.random() * 80000 + 1000));
+          ws.send("JOIN #" + CONFIG.canal.toLowerCase());
+        };
+        ws.onmessage = (event) => {
+          const linea = event.data;
+          if (linea.startsWith("PING")) { ws.send("PONG :tmi.twitch.tv"); return; }
+          if (linea.includes("366")) {
+            dotEl.className = "conectado";
+            textoEl.textContent = "Conectado a #" + CONFIG.canal;
+          }
+          if (linea.includes("PRIVMSG")) {
+            const match = linea.match(/:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)/);
+            if (match) {
+              const usuario = match[1].toLowerCase();
+              const mensaje = match[2].trim();
+              if (turnoEnCurso && mensaje.toLowerCase() === CONFIG.comando.toLowerCase()) {
+                /* Solo acepta el comando del participante cuyo turno es */
+                const idxReal = ordenTurnos[turnoActual];
+                const nombreEsperado = CONFIG.participantes[idxReal].nombre.toLowerCase();
+                if (usuario === nombreEsperado) {
+                  marcarSalvado(idxReal);
+                }
+              }
+            }
+          }
+        };
+        ws.onerror = () => { dotEl.className = "error"; textoEl.textContent = "Error de conexión"; };
+        ws.onclose = () => { if (turnoEnCurso) { dotEl.className = "error"; textoEl.textContent = "Desconectado"; } };
+      } catch (e) {
+        dotEl.className = "error";
+        textoEl.textContent = "WebSocket no disponible";
+      }
+    }
+
+    /* ── Finalizar purga (todos los turnos) ── */
+    function finalizarPurga() {
+      turnoEnCurso = false;
+      clearInterval(timerInterval);
+      if (ws) ws.close();
+
+      document.getElementById("turno-nombre").textContent = "—";
+      document.getElementById("turno-banner");
+
+      const total = CONFIG.participantes.length;
+      const salvados = Object.values(estadoParticipantes).filter(v => v === "salvado").length;
+      const eliminados = total - salvados;
+
+      setTimeout(() => mostrarPantallaFinal(salvados, eliminados, total), 1500);
+    }
+
+    /* ── Pantalla final ── */
+    function mostrarPantallaFinal(salvados, eliminados, total) {
+      document.getElementById("widget").style.display = "none";
+      const panel = document.getElementById("pantalla-final");
+      panel.style.display = "flex";
+
+      const todosSalvados = eliminados === 0;
+      panel.className = todosSalvados ? "angel" : "calavera";
+
+      const emoji  = document.getElementById("final-emoji");
+      const titulo = document.getElementById("final-titulo");
+
+      if (todosSalvados) {
+        emoji.textContent  = CONFIG.imgAngel ? "" : "😇";
+        titulo.textContent = "¡TODOS SALVADOS!";
+        if (CONFIG.imgAngel) {
+          emoji.innerHTML = `<img src="${CONFIG.imgAngel}" style="width:clamp(80px,18vh,160px);height:clamp(80px,18vh,160px);object-fit:contain">`;
+        }
+      } else {
+        emoji.textContent  = CONFIG.imgCalavera ? "" : "☠️";
+        titulo.textContent = "LA PURGA HA HABLADO";
+        if (CONFIG.imgCalavera) {
+          emoji.innerHTML = `<img src="${CONFIG.imgCalavera}" style="width:clamp(80px,18vh,160px);height:clamp(80px,18vh,160px);object-fit:contain">`;
+        }
+      }
+
+      document.getElementById("final-resultado").textContent =
+        `${salvados} salvados · ${eliminados} eliminados de ${total} participantes`;
+
+      /* ── Lista de nombres según resultado ── */
+      const listaEl = document.getElementById("final-lista");
+      listaEl.innerHTML = "";
+
+      const tipoMostrar = todosSalvados ? "salvado" : "eliminado";
+      const chipClass   = todosSalvados ? "salvado-chip" : "eliminado-chip";
+      const icono       = todosSalvados ? "🛡️" : "☠️";
+
+      CONFIG.participantes.forEach(p => {
+        const estado = estadoParticipantes[p.nombre.toLowerCase()];
+        if (estado === tipoMostrar) {
+          const chip = document.createElement("span");
+          chip.className = `final-nombre-chip ${chipClass}`;
+          chip.textContent = `${icono} ${p.nombre}`;
+          listaEl.appendChild(chip);
+        }
+      });
+
+      // Si no todos están en el mismo estado, mostrar ambos grupos
+      if (!todosSalvados && salvados > 0) {
+        // Agregar separador
+        const sep = document.createElement("div");
+        sep.style.cssText = "width:100%;text-align:center;font-family:var(--font-mono);font-size:clamp(8px,1.2vh,11px);color:var(--texto-secundario);letter-spacing:2px;padding:4px 0;";
+        sep.textContent = "── SALVADOS ──";
+        listaEl.appendChild(sep);
+        CONFIG.participantes.forEach(p => {
+          if (estadoParticipantes[p.nombre.toLowerCase()] === "salvado") {
+            const chip = document.createElement("span");
+            chip.className = "final-nombre-chip salvado-chip";
+            chip.textContent = `🛡️ ${p.nombre}`;
+            listaEl.appendChild(chip);
+          }
+        });
+      }
+    }
+
+    /* ── Controles manuales ── */
+    function salvarTodos() {
+      clearInterval(timerInterval);
+      turnoEnCurso = false;
+      /* Salvar a todos los que quedan */
+      for (let t = turnoActual; t < ordenTurnos.length; t++) {
+        const idx = ordenTurnos[t];
+        if (estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] === "espera" && estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] !== "eliminado") {
+          estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] = "salvado";
+          const el = document.getElementById(`p-${idx}`);
+          el.classList.remove("turno-activo");
+          el.classList.add("salvado");
+          el.querySelector(".nombre").classList.add("salvado-text");
+          const icono = el.querySelector(".estado-icono");
+          icono.className = "estado-icono salvado-icono";
+          icono.textContent = "🛡️";
+        }
+      }
+      const total = CONFIG.participantes.length;
+      const salvados = Object.values(estadoParticipantes).filter(v => v === "salvado").length;
+      setTimeout(() => mostrarPantallaFinal(salvados, total - salvados, total), 800);
+    }
+
+    function eliminarTodos() {
+      clearInterval(timerInterval);
+      turnoEnCurso = false;
+      for (let t = turnoActual; t < ordenTurnos.length; t++) {
+        const idx = ordenTurnos[t];
+        if (estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] === "espera" && estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] !== "salvado") {
+          estadoParticipantes[CONFIG.participantes[idx].nombre.toLowerCase()] = "eliminado";
+          const el = document.getElementById(`p-${idx}`);
+          el.classList.remove("turno-activo");
+          el.classList.add("eliminado");
+          el.querySelector(".nombre").classList.add("eliminado-text");
+          const icono = el.querySelector(".estado-icono");
+          icono.className = "estado-icono eliminado-icono";
+          icono.textContent = "☠️";
+        }
+      }
+      const total = CONFIG.participantes.length;
+      const salvados = Object.values(estadoParticipantes).filter(v => v === "salvado").length;
+      setTimeout(() => mostrarPantallaFinal(salvados, total - salvados, total), 800);
+    }
+
+    function resetPurga() {
+      clearInterval(timerInterval);
+      if (ws) ws.close();
+      turnoEnCurso = false;
+      turnoActual = -1;
+      document.getElementById("widget").style.display = "none"; document.getElementById("pantalla-final").style.display = "none";
+      document.getElementById("inicio").style.display = "flex";
+      document.getElementById("dot-conexion").className = "";
+      document.getElementById("texto-conexion").textContent = "Conectando a Twitch IRC…";
+    }
+  </script>
+</body>
+
+</html>
